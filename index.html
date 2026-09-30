@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Викторина: Повесть о Петре и Февронии</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Подключаем стилизованный под старину шрифт -->
+    <link href="https://fonts.googleapis.com/css2?family=Ruslan+Display&family=Philosopher:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --ink-color: #3b2313;
+            --highlight-color: #8b1e0f;
+            --parchment-bg: #ecd9b3;
+            --parchment-dark: #d5b882;
+            --border-color: #5c3a21;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #1a100b;
+            background-image: radial-gradient(circle, #3e2723 0%, #1a100b 100%);
+            font-family: 'Philosopher', serif;
+            color: var(--ink-color);
+        }
+
+        .scroll-container {
+            position: relative;
+            width: 90%;
+            max-width: 700px;
+            background-color: var(--parchment-bg);
+            background-image: url('data:image/svg+xml;utf8,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100" height="100" filter="url(%23noise)" opacity="0.1"/></svg>');
+            border: 8px double var(--border-color);
+            border-radius: 5px;
+            padding: 40px 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6), inset 0 0 40px rgba(139, 69, 19, 0.2);
+            text-align: center;
+        }
+
+        .scroll-container::before, .scroll-container::after {
+            content: '';
+            position: absolute;
+            left: -15px;
+            right: -15px;
+            height: 20px;
+            background: linear-gradient(to bottom, #795548, #3e2723);
+            border-radius: 10px;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.5);
+        }
+
+        .scroll-container::before { top: -10px; }
+        .scroll-container::after { bottom: -10px; }
+
+        h1, h2 {
+            font-family: 'Ruslan Display', cursive;
+            color: var(--highlight-color);
+            margin-top: 0;
+            text-shadow: 1px 1px 0px rgba(255,255,255,0.5);
+        }
+
+        h1 { font-size: 2.2rem; margin-bottom: 10px; }
+        
+        .ornament {
+            font-family: 'Ruslan Display', cursive;
+            color: var(--border-color);
+            font-size: 2rem;
+            margin: 10px 0 20px 0;
+            user-select: none;
+        }
+
+        .description {
+            font-size: 1.2rem;
+            line-height: 1.5;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+
+        .btn {
+            background-color: var(--highlight-color);
+            color: #fff;
+            font-family: 'Ruslan Display', cursive;
+            font-size: 1.4rem;
+            padding: 10px 30px;
+            border: 2px solid #5a1008;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.2);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .btn:hover {
+            background-color: #a32a18;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.4), inset 0 2px 4px rgba(255,255,255,0.2);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Question Screen Styles */
+        #question-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #question-text {
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-bottom: 25px;
+            min-height: 80px;
+        }
+
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 25px;
+        }
+
+        .option-btn {
+            background-color: transparent;
+            border: 2px solid var(--border-color);
+            color: var(--ink-color);
+            padding: 12px 20px;
+            font-family: 'Philosopher', serif;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-radius: 4px;
+            text-align: left;
+            position: relative;
+        }
+
+        .option-btn:hover {
+            background-color: rgba(92, 58, 33, 0.1);
+        }
+
+        .option-btn.selected {
+            background-color: var(--border-color);
+            color: var(--parchment-bg);
+        }
+
+        .option-btn.correct {
+            background-color: #2e662e;
+            color: white;
+            border-color: #1a401a;
+        }
+
+        .option-btn.wrong {
+            background-color: #8b1e0f;
+            color: white;
+            border-color: #5a1008;
+        }
+
+        #progress {
+            font-family: 'Ruslan Display', cursive;
+            font-size: 1.2rem;
+            color: var(--border-color);
+            margin-bottom: 15px;
+        }
+
+        /* Result Screen Styles */
+        #result-text {
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        #score-display {
+            font-size: 3rem;
+            font-family: 'Ruslan Display', cursive;
+            color: var(--highlight-color);
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 500px) {
+            h1 { font-size: 1.8rem; }
+            .scroll-container { padding: 30px 15px; }
+            .option-btn { font-size: 1.1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="scroll-container">
+        
+        <!-- Start Screen -->
+        <div id="start-screen">
+            <h1>Повесть о Петре и Февронии</h1>
+            <div class="ornament">~ ❖ ~</div>
+            <p class="description">
+                Гой еси, добрый молодец да красна девица!<br><br>
+                Предлагаю тебе пройти испытание ума твоего и вспомнить дивную повесть о муромских святых.<br>
+                Покажи знания свои, ответив на семь вопросов хитроумных.
+            </p>
+            <button class="btn" onclick="startQuiz()">Начати испытание</button>
+        </div>
+
+        <!-- Question Screen -->
+        <div id="question-screen" class="hidden">
+            <div id="progress">Вопрошение 1 из 7</div>
+            <h2 id="question-text">Текст вопроса</h2>
+            <div class="options-grid" id="options-container">
+                <!-- Кнопки с вариантами ответов будут добавляться сюда через JS -->
+            </div>
+            <button id="next-btn" class="btn hidden" onclick="nextQuestion()">Далее</button>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="hidden">
+            <h1>Итоги испытания</h1>
+            <div class="ornament">~ ❖ ~</div>
+            <p id="result-text">Твои познания, отрок:</p>
+            <div id="score-display">0 / 7</div>
+            <p id="result-message" class="description"></p>
+            <button class="btn" onclick="restartQuiz()">Начати сызнова</button>
+        </div>
+
+    </div>
+
+    <script>
+        // База вопросов, взятая из предоставленного материала
+        const questions = [
+            {
+                question: "В коем граде правил благоверный князь Павел в начале повествования?",
+                options: ["В Рязани", "В Муроме", "Во Владимире", "В Киеве"],
+                correct: 1 // Индекс правильного ответа (от 0)
+            },
+            {
+                question: "Кто указал князю Петру, где сокрыт Агриков меч во храме?",
+                options: ["Старший брат Павел", "Молодой инок (монах)", "Дева Феврония", "Муромские бояре"],
+                correct: 1
+            },
+            {
+                question: "Какое диковинное животное скакало пред Февронией, когда слуга впервые узрел её?",
+                options: ["Собака", "Заяц", "Кот", "Олень"],
+                correct: 1
+            },
+            {
+                question: "Какое пророчество о погибели своей открыл змей-оборотень жене Павла?",
+                options: [
+                    "«Смерть моя на конце иглы спрятана»", 
+                    "«Смерть мне суждена от Петрова плеча и от Агрикова меча»", 
+                    "«Смерть мне придёт от вод реки Оки»", 
+                    "«Смерть моя наступит от руки чистой девы»"
+                ],
+                correct: 1
+            },
+            {
+                question: "Какое главное условие поставила мудрая Феврония для исцеления князя Петра?",
+                options: [
+                    "Построить монастырь в её деревне", 
+                    "Отдать половину княжеской казны", 
+                    "Стать её супругом", 
+                    "Назначить её отца воеводой"
+                ],
+                correct: 2
+            },
+            {
+                question: "По какой причине бояре муромские изначально возненавидели княгиню Февронию?",
+                options: [
+                    "Она растратила городскую казну", 
+                    "Она не имела знатного происхождения (из крестьян)", 
+                    "Она запретила проводить пиры", 
+                    "Она отказалась принять послов"
+                ],
+                correct: 1
+            },
+            {
+                question: "Где люди обрели тела Петра и Февронии наутро, после того как похоронили их в разных местах?",
+                options: [
+                    "В загородном женском монастыре", 
+                    "В городской соборной церкви в едином каменном гробу", 
+                    "В княжеском тереме", 
+                    "Тела их исчезли без следа"
+                ],
+                correct: 1
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let hasAnswered = false;
+
+        // Элементы DOM
+        const startScreen = document.getElementById('start-screen');
+        const questionScreen = document.getElementById('question-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const progressEl = document.getElementById('progress');
+        const questionTextEl = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const nextBtn = document.getElementById('next-btn');
+        const scoreDisplay = document.getElementById('score-display');
+        const resultMessage = document.getElementById('result-message');
+
+        function startQuiz() {
+            startScreen.classList.add('hidden');
+            resultScreen.classList.add('hidden');
+            questionScreen.classList.remove('hidden');
+            currentQuestionIndex = 0;
+            score = 0;
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            hasAnswered = false;
+            nextBtn.classList.add('hidden');
+            optionsContainer.innerHTML = ''; // Очищаем старые варианты
+
+            const currentQuestion = questions[currentQuestionIndex];
+            progressEl.textContent = `Вопрошение ${currentQuestionIndex + 1} из ${questions.length}`;
+            questionTextEl.textContent = currentQuestion.question;
+
+            // Создаем кнопки для вариантов ответов
+            currentQuestion.options.forEach((optionText, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = optionText;
+                btn.onclick = () => checkAnswer(index, btn);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selectedIndex, selectedBtn) {
+            if (hasAnswered) return; // Запрещаем отвечать дважды
+            hasAnswered = true;
+
+            const currentQuestion = questions[currentQuestionIndex];
+            const allBtns = optionsContainer.querySelectorAll('.option-btn');
+
+            // Подсвечиваем правильный и неправильный ответы
+            if (selectedIndex === currentQuestion.correct) {
+                selectedBtn.classList.add('correct');
+                score++;
+            } else {
+                selectedBtn.classList.add('wrong');
+                // Показываем правильный ответ, если ошиблись
+                allBtns[currentQuestion.correct].classList.add('correct');
+            }
+
+            // Делаем все кнопки неактивными для курсора
+            allBtns.forEach(btn => btn.style.cursor = 'default');
+
+            // Показываем кнопку "Далее"
+            nextBtn.classList.remove('hidden');
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            questionScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+            
+            scoreDisplay.textContent = `${score} / ${questions.length}`;
+
+            // Выдаем старорусское сообщение в зависимости от результата
+            if (score === questions.length) {
+                resultMessage.innerHTML = "Зело борзо! Мудрость твоя аки у самой девы Февронии.<br>Повесть сию ты ведаешь отменно!";
+            } else if (score >= 4) {
+                resultMessage.innerHTML = "Лепота! Знания твои крепки, хоть и есть куда расти.<br>Достоин ты похвалы княжеской.";
+            } else {
+                resultMessage.innerHTML = "Охти мне! Не кручинься, отрок, но грамоту надобно подтянуть.<br>Прочти повесть сызнова, дабы ума набраться.";
+            }
+        }
+
+        function restartQuiz() {
+            startQuiz();
+        }
+    </script>
+</body>
+</html>
